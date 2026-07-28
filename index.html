@@ -4,82 +4,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Absensi Sekolah</title>
+    
+    <!-- Import Font Modern dari Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { background-color: white; max-width: 400px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; margin-top: 0; }
-        label { font-weight: bold; font-size: 14px; color: #555; }
-        select, input, button { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 16px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background-color: #0d6efd; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:disabled { background-color: #a5c8fd; cursor: not-allowed; }
-        .btn-danger { background-color: #dc3545; margin-top: 5px; }
-        .btn-warning { background-color: #ff9800; color: white; }
-        .msg { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-        .info-time { font-size: 16px; color: #d32f2f; display: block; margin-top: 10px; background: #ffebee; padding: 10px; border-radius: 6px;}
+        /* === RESET & GLOBAL === */
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+        body { 
+            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%); 
+            color: #334155; 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+        }
+
+        /* === CONTAINER KARTU === */
+        .container { 
+            background-color: #ffffff; 
+            max-width: 420px; 
+            width: 100%; 
+            padding: 35px 25px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15); 
+        }
+
+        /* === TYPOGRAPHY === */
+        h2 { text-align: center; color: #1e293b; font-weight: 700; margin-bottom: 20px; font-size: 24px; }
+        label { font-weight: 600; font-size: 13px; color: #64748b; margin-bottom: 6px; display: block; }
         
-        #panel-absen { display: none; }
-        .header-profil { background: #e9ecef; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+        /* === INPUT & SELECT === */
+        select, input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            margin-bottom: 20px; 
+            border-radius: 12px; 
+            border: 1.5px solid #e2e8f0; 
+            font-size: 14px; 
+            color: #334155;
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        select:focus, input:focus { border-color: #3b82f6; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+
+        /* === TOMBOL (BUTTONS) === */
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 12px; 
+            border: none; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); }
+        .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        /* UI Kamera Langsung */
-        #kamera-container { position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 15px; }
-        #video { width: 100%; display: block; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
+        
+        .btn-danger { background-color: #fee2e2; color: #ef4444; margin-top: 15px; border: 1.5px solid #fca5a5; }
+        .btn-danger:hover { background-color: #fecaca; }
+
+        /* === KAMERA LIVES === */
+        #kamera-container { 
+            position: relative; 
+            width: 100%; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            background: #0f172a; 
+            margin-bottom: 15px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        #video { width: 100%; display: block; transform: scaleX(-1); /* Efek Cermin untuk Selfie */ }
         #canvas { display: none; }
-        #preview { width: 100%; display: none; border-radius: 8px; margin-bottom: 15px; }
+        #preview { width: 100%; display: none; border-radius: 16px; margin-bottom: 15px; border: 3px solid #3b82f6; transform: scaleX(-1); }
+
+        /* === MESSAGES & NOTIF === */
+        .msg { text-align: center; font-weight: 500; font-size: 14px; margin-bottom: 15px; line-height: 1.5; padding: 10px; border-radius: 8px;}
+        .msg-error { color: #ef4444; background-color: #fef2f2; border: 1px solid #fecaca; }
+        .msg-success { color: #059669; background-color: #ecfdf5; border: 1px solid #a7f3d0; }
+        .msg-warning { color: #d97706; background-color: #fffbeb; border: 1px solid #fde68a; }
+        
+        .info-time { font-size: 15px; color: #b91c1c; display: block; margin-top: 10px; background: #fef2f2; padding: 12px; border-radius: 8px; font-weight: 600; border-left: 4px solid #ef4444; }
+
+        /* === PANELS === */
+        #panel-absen { display: none; }
+        .header-profil { background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: center; border: 1px solid #e2e8f0; }
+        .nama-guru { font-size: 18px; color: #2563eb; font-weight: 700; margin-top: 5px; display: block; }
+        
+        hr { border: 0; height: 1px; background: #e2e8f0; margin: 25px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
     
-    <!-- ================= PANEL LOGIN ================= -->    
+    <!-- ================= PANEL LOGIN ================= -->
     <div id="panel-login">
-        <h2>🔒 Login Pegawai</h2>
-        <div id="login-msg" class="msg"></div>
-        <label>Email:</label>
-        <input type="email" id="email" placeholder="Masukkan email" required>
-        <label>Password:</label>
-        <input type="password" id="password" placeholder="Masukkan password" required>
-        <button id="btnLogin" onclick="prosesLogin()">Masuk Sistem</button>
-
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="#" onclick="tampilRegister()" style="color: #0d6efd; text-decoration: none;">Belum punya akun? Daftar di sini</a>
-        </div>
-    </div>
-
-    
-
-    <!-- ================= PANEL REGISTER ================= -->
-    <div id="panel-register" style="display: none;">
-        <h2>📝 Daftar Akun Baru</h2>
-        <div id="register-msg" class="msg"></div>
-        <label>Nama Lengkap (Sesuai Gelar):</label>
-        <input type="text" id="reg-nama" placeholder="Contoh: Budi Santoso, S.Pd" required>
-        <label>Email:</label>
-        <input type="email" id="reg-email" placeholder="Masukkan email aktif" required>
-        <label>Password:</label>
-        <input type="password" id="reg-password" placeholder="Buat password" required>
-        <button id="btnRegister" onclick="prosesRegister()">Daftar Sekarang</button>
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="#" onclick="tampilLogin()" style="color: #0d6efd; text-decoration: none;">Sudah punya akun? Login di sini</a>
-        </div>
+        <h2>👋 Selamat Datang</h2>
+        <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 20px; margin-top:-10px;">Silakan login ke portal absensi</p>
+        
+        <div id="login-msg" class="msg" style="display:none;"></div>
+        
+        <label>Alamat Email</label>
+        <input type="email" id="email" placeholder="contoh: guru@sekolah.id" required>
+        
+        <label>Kata Sandi</label>
+        <input type="password" id="password" placeholder="Masukkan password Anda" required>
+        
+        <button id="btnLogin" class="btn-primary" onclick="prosesLogin()">Masuk Sistem</button>
     </div>
 
     <!-- ================= PANEL ABSEN ================= -->
     <div id="panel-absen">
-        <h2>🏫 Form Absensi</h2>
+        <h2>📍 Form Absensi</h2>
         
         <div class="header-profil">
-            Masuk sebagai: <br><strong id="nama-pegawai" style="font-size: 18px; color: #0d6efd;"></strong>
+            <span style="font-size: 13px; color: #64748b;">Masuk sebagai:</span>
+            <span id="nama-pegawai" class="nama-guru"></span>
         </div>
 
-        <label>Status Kehadiran:</label>
+        <label>Status Kehadiran</label>
         <select id="status">
-            <option value="Hadir">Hadir (Masuk)</option>
-            <option value="Pulang">Pulang</option>
+            <option value="Hadir">🟢 Hadir (Datang)</option>
+            <option value="Pulang">🔴 Pulang</option>
         </select>
         
-        <label>Foto Selfie (Hanya Kamera Depan):</label>
-        
+        <label>Verifikasi Wajah (Selfie)</label>
         <!-- Wadah Kamera Langsung -->
         <div id="kamera-container">
             <video id="video" autoplay playsinline></video>
@@ -87,45 +145,49 @@
         <canvas id="canvas"></canvas>
         <img id="preview" alt="Hasil Foto">
         
-        <button id="btnJepret" type="button" onclick="ambilFoto()">📸 Jepret Foto</button>
+        <button id="btnJepret" type="button" class="btn-primary" onclick="ambilFoto()">📸 Jepret Foto</button>
         <button id="btnUlangi" type="button" class="btn-warning" style="display:none;" onclick="ulangiFoto()">🔄 Ulangi Foto</button>
         
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+        <hr>
         
-        <button id="btnAbsen" onclick="kirimAbsen()">Kirim Absen & Lokasi</button>
+        <button id="btnAbsen" class="btn-primary" onclick="kirimAbsen()">🚀 Kirim Absen & Lokasi</button>
         <button class="btn-danger" onclick="logout()">Keluar Akun</button>
         
-        <div id="absen-msg" class="msg" style="margin-top: 15px;"></div>
+        <div id="absen-msg" class="msg" style="display:none; margin-top: 20px;"></div>
     </div>
 
 </div>
 
+<!-- SCRIPT LOGIKA TETAP SAMA 
+ -->
 <script>
     // MASUKKAN URL WEB APP ANDA DI SINI
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEbbLLq8Z1-ow_kUhwvW_5himrBrZvFua_pzIW4-TJG4Tx4JpXSAj8kqSjlqW9GDwm/exec'; 
-    const SEKOLAH_LAT = -6.261660060621071; 
-    const SEKOLAH_LNG = 106.84235258398554; 
+    
+    //const SEKOLAH_LAT = -6.261660060621071; 
+    //const SEKOLAH_LNG = 106.84235258398554; 
+    //const RADIUS_MAKSIMAL = 50; 
+
+    const SEKOLAH_LAT = -6.331541;
+    const SEKOLAH_LNG = 106.821780; 
     const RADIUS_MAKSIMAL = 50; 
 
     let base64String = "";
     let streamKamera = null;
 
-    // --- INISIALISASI SAAT HALAMAN DIBUKA ---
     window.onload = function() {
         const sesiNama = localStorage.getItem("guru_nama");
         if (sesiNama) {
             document.getElementById("nama-pegawai").innerText = sesiNama;
             document.getElementById("panel-login").style.display = "none";
             document.getElementById("panel-absen").style.display = "block";
-            mulaiKamera(); // Aktifkan kamera jika sudah login
+            mulaiKamera(); 
         }
     };
 
-    // --- FITUR KAMERA LANGSUNG (WEBRTC) ---
     async function mulaiKamera() {
         const video = document.getElementById('video');
         try {
-            // Meminta akses kamera depan (user)
             streamKamera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             video.srcObject = streamKamera;
         } catch (err) {
@@ -138,17 +200,13 @@
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('preview');
         
-        // Atur ukuran canvas sesuai ukuran video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
-        // Menggambar frame video ke dalam canvas
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Konversi ke base64 dengan kualitas 70% (0.7) agar ringan
         base64String = canvas.toDataURL('image/jpeg', 0.7);
         
-        // Tampilkan hasil foto dan sembunyikan video live
         preview.src = base64String;
         preview.style.display = 'block';
         document.getElementById('kamera-container').style.display = 'none';
@@ -166,22 +224,25 @@
     }
 
     function matikanKamera() {
-        if (streamKamera) {
-            streamKamera.getTracks().forEach(track => track.stop());
-        }
+        if (streamKamera) { streamKamera.getTracks().forEach(track => track.stop()); }
     }
 
-    // --- PROSES LOGIN ---
+    function showMsg(elId, text, type) {
+        const el = document.getElementById(elId);
+        el.style.display = "block";
+        el.className = "msg msg-" + type;
+        el.innerHTML = text;
+    }
+
     function prosesLogin() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        const msgEl = document.getElementById("login-msg");
         const btnLogin = document.getElementById("btnLogin");
 
-        if (!email || !password) { msgEl.innerText = "Isi email dan password!"; msgEl.style.color = "red"; return; }
+        if (!email || !password) { showMsg("login-msg", "Mohon isi email dan password!", "error"); return; }
 
         btnLogin.disabled = true;
-        msgEl.innerText = "Memeriksa kredensial..."; msgEl.style.color = "orange";
+        showMsg("login-msg", "Memeriksa kredensial...", "warning");
 
         fetch(GAS_URL, {
             method: 'POST',
@@ -196,24 +257,23 @@
                 document.getElementById("panel-absen").style.display = "block";
                 document.getElementById("email").value = "";
                 document.getElementById("password").value = "";
-                msgEl.innerText = "";
+                document.getElementById("login-msg").style.display = "none";
                 btnLogin.disabled = false;
                 
-                mulaiKamera(); // Hidupkan kamera setelah login sukses
+                mulaiKamera(); 
             } else {
-                msgEl.innerText = data.message; msgEl.style.color = "red"; btnLogin.disabled = false;
+                showMsg("login-msg", data.message, "error"); btnLogin.disabled = false;
             }
-        }).catch(err => { msgEl.innerText = "Kesalahan jaringan."; msgEl.style.color = "red"; btnLogin.disabled = false; });
+        }).catch(err => { showMsg("login-msg", "Kesalahan jaringan.", "error"); btnLogin.disabled = false; });
     }
 
-    // --- LOGOUT ---
     function logout() {
-        matikanKamera(); // Matikan lampu indikator kamera HP
+        matikanKamera(); 
         localStorage.removeItem("guru_nama");
         document.getElementById("panel-absen").style.display = "none";
         document.getElementById("panel-login").style.display = "block";
-        document.getElementById("absen-msg").innerText = "";
-        ulangiFoto(); // Reset tampilan foto
+        document.getElementById("absen-msg").style.display = "none";
+        ulangiFoto(); 
     }
 
     function hitungJarakMeters(lat1, lon1, lat2, lon2) {
@@ -222,18 +282,16 @@
         return Math.round(R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))));
     }
 
-    // --- PROSES ABSEN ---
     function kirimAbsen() {
         const nama = localStorage.getItem("guru_nama"); 
         const status = document.getElementById('status').value;
-        const msgEl = document.getElementById('absen-msg');
         const btnAbsen = document.getElementById('btnAbsen');
 
         if (!nama) { alert("Sesi habis, silakan login ulang."); logout(); return; }
         if (!base64String) { alert('Silakan klik "Jepret Foto" terlebih dahulu!'); return; }
 
         btnAbsen.disabled = true;
-        msgEl.innerText = "Mengecek lokasi GPS..."; msgEl.style.color = "orange";
+        showMsg("absen-msg", "Mengecek lokasi GPS...", "warning");
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -242,11 +300,11 @@
                     const jarak = hitungJarakMeters(SEKOLAH_LAT, SEKOLAH_LNG, lat, lng);
                     
                     if (jarak > RADIUS_MAKSIMAL) {
-                        msgEl.innerHTML = `❌ <b>Ditolak!</b> Jarak Anda ${jarak}m. (Batas: ${RADIUS_MAKSIMAL}m)`;
-                        msgEl.style.color = "red"; btnAbsen.disabled = false; return; 
+                        showMsg("absen-msg", `❌ <b>Ditolak!</b> Jarak Anda ${jarak}m.<br>(Batas Maksimal: ${RADIUS_MAKSIMAL}m)`, "error");
+                        btnAbsen.disabled = false; return; 
                     }
 
-                    msgEl.innerText = `Mengirim data absensi...`;
+                    showMsg("absen-msg", `Lokasi aman (${jarak}m). Mengirim data...`, "warning");
 
                     fetch(GAS_URL, {
                         method: 'POST',
@@ -257,74 +315,24 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.result === "success") {
-                            // InfoWaktu dari Apps Script otomatis mendeteksi Telat / Pulang Cepat
-                            msgEl.innerHTML = `✅ <b>Berhasil!</b><br><span class="info-time">Info: <b>${data.infoWaktu}</b></span>`;
-                            ulangiFoto(); // Reset form foto untuk besok
+                            showMsg("absen-msg", `✅ <b>Absen Berhasil!</b><br><span class="info-time">Info: <b>${data.infoWaktu}</b></span>`, "success");
+                            ulangiFoto(); 
                             btnAbsen.disabled = false;
                         } else {
-                            msgEl.innerText = "❌ Gagal: " + data.message; msgEl.style.color = "red"; btnAbsen.disabled = false;
+                            showMsg("absen-msg", "❌ Gagal: " + data.message, "error"); btnAbsen.disabled = false;
                         }
-                    }).catch(err => { msgEl.innerText = "❌ <b>Koneksi terputus!</b><br>Info: Data kemungkinan <b>sudah masuk</b>, tapi balasan server gagal dimuat. (" + err.message + ")"; msgEl.style.color = "red"; btnAbsen.disabled = false; });
+                    }).catch(err => { 
+                        showMsg("absen-msg", "❌ <b>Koneksi terputus!</b><br>Data kemungkinan <b>sudah masuk</b>, tapi balasan server gagal dimuat. (" + err.message + ")", "error"); 
+                        btnAbsen.disabled = false; 
+                    });
                 },
-                function(error) { msgEl.innerText = "❌ Gagal akses GPS. Pastikan izin lokasi aktif."; msgEl.style.color = "red"; btnAbsen.disabled = false; },
+                function(error) { showMsg("absen-msg", "❌ Gagal akses GPS. Pastikan izin lokasi aktif.", "error"); btnAbsen.disabled = false; },
                 { enableHighAccuracy: true }
             );
         } else {
-            msgEl.innerText = "Browser tidak dukung GPS."; msgEl.style.color = "red"; btnAbsen.disabled = false;
+            showMsg("absen-msg", "Browser tidak dukung GPS.", "error"); btnAbsen.disabled = false;
         }
     }
-
-    // Fungsi untuk pindah-pindah panel
-    function tampilRegister() {
-        document.getElementById("panel-login").style.display = "none";
-        document.getElementById("panel-register").style.display = "block";
-    }
-
-    function tampilLogin() {
-        document.getElementById("panel-register").style.display = "none";
-        document.getElementById("panel-login").style.display = "block";
-    }
-
-    // Fungsi proses pendaftaran
-    function prosesRegister() {
-        const nama = document.getElementById("reg-nama").value;
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-password").value;
-        const msgEl = document.getElementById("register-msg");
-        const btnReg = document.getElementById("btnRegister");
-
-        if (!nama || !email || !password) {
-            msgEl.innerText = "Lengkapi semua data!"; msgEl.style.color = "red"; return;
-        }
-
-        btnReg.disabled = true;
-        msgEl.innerText = "Mendaftarkan akun..."; msgEl.style.color = "orange";
-
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "register", nama: nama, email: email, password: password })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.result === "success") {
-                msgEl.innerText = "✅ Berhasil! Silakan login."; 
-                msgEl.style.color = "green";
-                // Bersihkan form
-                document.getElementById("reg-nama").value = "";
-                document.getElementById("reg-email").value = "";
-                document.getElementById("reg-password").value = "";
-                btnReg.disabled = false;
-                
-                // Otomatis pindah ke halaman login setelah 2 detik
-                setTimeout(tampilLogin, 2000);
-            } else {
-                msgEl.innerText = data.message; msgEl.style.color = "red"; btnReg.disabled = false;
-            }
-        }).catch(err => {
-            msgEl.innerText = "Kesalahan jaringan."; msgEl.style.color = "red"; btnReg.disabled = false;
-        });
-    }
-
 </script>
 
 </body>
