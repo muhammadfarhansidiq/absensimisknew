@@ -31,7 +31,7 @@
 
 <div class="container">
     
-    <!-- ================= PANEL LOGIN ================= -->
+    <!-- ================= PANEL LOGIN ================= -->    
     <div id="panel-login">
         <h2>🔒 Login Pegawai</h2>
         <div id="login-msg" class="msg"></div>
@@ -40,10 +40,13 @@
         <label>Password:</label>
         <input type="password" id="password" placeholder="Masukkan password" required>
         <button id="btnLogin" onclick="prosesLogin()">Masuk Sistem</button>
+
+        <div style="text-align: center; margin-top: 15px;">
+            <a href="#" onclick="tampilRegister()" style="color: #0d6efd; text-decoration: none;">Belum punya akun? Daftar di sini</a>
+        </div>
     </div>
-     <div style="text-align: center; margin-top: 15px;">
-        <a href="#" onclick="tampilRegister()" style="color: #0d6efd; text-decoration: none;">Belum punya akun? Daftar di sini</a>
-    </div>
+
+    
 
     <!-- ================= PANEL REGISTER ================= -->
     <div id="panel-register" style="display: none;">
