@@ -271,6 +271,58 @@
             msgEl.innerText = "Browser tidak dukung GPS."; msgEl.style.color = "red"; btnAbsen.disabled = false;
         }
     }
+
+    // Fungsi untuk pindah-pindah panel
+    function tampilRegister() {
+        document.getElementById("panel-login").style.display = "none";
+        document.getElementById("panel-register").style.display = "block";
+    }
+
+    function tampilLogin() {
+        document.getElementById("panel-register").style.display = "none";
+        document.getElementById("panel-login").style.display = "block";
+    }
+
+    // Fungsi proses pendaftaran
+    function prosesRegister() {
+        const nama = document.getElementById("reg-nama").value;
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
+        const msgEl = document.getElementById("register-msg");
+        const btnReg = document.getElementById("btnRegister");
+
+        if (!nama || !email || !password) {
+            msgEl.innerText = "Lengkapi semua data!"; msgEl.style.color = "red"; return;
+        }
+
+        btnReg.disabled = true;
+        msgEl.innerText = "Mendaftarkan akun..."; msgEl.style.color = "orange";
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "register", nama: nama, email: email, password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.result === "success") {
+                msgEl.innerText = "✅ Berhasil! Silakan login."; 
+                msgEl.style.color = "green";
+                // Bersihkan form
+                document.getElementById("reg-nama").value = "";
+                document.getElementById("reg-email").value = "";
+                document.getElementById("reg-password").value = "";
+                btnReg.disabled = false;
+                
+                // Otomatis pindah ke halaman login setelah 2 detik
+                setTimeout(tampilLogin, 2000);
+            } else {
+                msgEl.innerText = data.message; msgEl.style.color = "red"; btnReg.disabled = false;
+            }
+        }).catch(err => {
+            msgEl.innerText = "Kesalahan jaringan."; msgEl.style.color = "red"; btnReg.disabled = false;
+        });
+    }
+
 </script>
 
 </body>
