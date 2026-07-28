@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Sekolah</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { background-color: white; max-width: 400px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        label { font-weight: bold; font-size: 14px; color: #555; }
+        select, input, button { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 16px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #0d6efd; color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:disabled { background-color: #a5c8fd; cursor: not-allowed; }
+        .btn-danger { background-color: #dc3545; margin-top: 5px; }
+        #preview { width: 100%; display: none; border-radius: 8px; margin-bottom: 15px; border: 2px dashed #ccc; }
+        .msg { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .info-time { font-size: 16px; color: #d32f2f; display: block; margin-top: 10px; background: #ffebee; padding: 10px; border-radius: 6px;}
+        
+        /* Pengaturan Tampilan Panel */
+        #panel-absen { display: none; }
+        .header-profil { background: #e9ecef; padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- ================= PANEL LOGIN ================= -->
+    <div id="panel-login">
+        <h2>🔒 Login Pegawai</h2>
+        <div id="login-msg" class="msg"></div>
+        
+        <label>Email:</label>
+        <input type="email" id="email" placeholder="Masukkan email" required>
+        
+        <label>Password:</label>
+        <input type="password" id="password" placeholder="Masukkan password" required>
+        
+        <button id="btnLogin" onclick="prosesLogin()">Masuk Sistem</button>
+    </div>
+
+    <!-- ================= PANEL ABSEN ================= -->
+    <div id="panel-absen">
+        <h2>🏫 Form Absensi</h2>
+        
+        <div class="header-profil">
+            Masuk sebagai: <br>
+            <strong id="nama-pegawai" style="font-size: 18px; color: #0d6efd;"></strong>
+        </div>
+
+        <label>Status Kehadiran:</label>
+        <select id="status">
+            <option value="Hadir">Hadir (Masuk)</option>
+            <option value="Pulang">Pulang</option>
+        </select>
+        
+        <label>Foto Selfie & Lokasi:</label>
+        <input type="file" accept="image/*" capture="user" id="foto" required>
+        <img id="preview" alt="Preview Foto">
+        
+        <button id="btnAbsen" onclick="kirimAbsen()">Kirim Absen & Lokasi</button>
+        <button class="btn-danger" onclick="logout()">Keluar Akun</button>
+        
+        <div id="absen-msg" class="msg" style="margin-top: 15px;"></div>
+    </div>
+
+</div>
+
+<script>
+    // MASUKKAN URL WEB APP ANDA DI SINI
+    const GAS_URL = 'URL_WEB_APP_ANDA_DISINI'; 
+    const SEKOLAH_LAT = -6.200000; 
+    const SEKOLAH_LNG = 106.816666; 
+    const RADIUS_MAKSIMAL = 50; 
+
+    // Cek LocalStorage saat web pertama kali dibuka
+    window.onload = function() {
+        const sesiNama = localStorage.getItem("guru_nama");
+        if (sesiNama) {
+            document.getElementById("nama-pegawai").innerText = sesiNama;
+            document.getElementById("panel-login").style.display = "none";
+            document.getElementById("panel-absen").style.display = "block";
+        }
+    };
+
+    // --- PROSES LOGIN ---
+    function prosesLogin() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const msgEl = document.getElementById("login-msg");
+        const btnLogin = document.getElementById("btnLogin");
+
+        if (!email || !password) { msgEl.innerText = "Isi email dan password!"; msgEl.style.color = "red"; return; }
+
+        btnLogin.disabled = true;
+        msgEl.innerText = "Memeriksa kredensial..."; msgEl.style.color = "orange";
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "login", email: email, password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.result === "success") {
+                // Simpan nama ke memori HP
+                localStorage.setItem("guru_nama", data.nama);
+                
+                // Pindah Tampilan
+                document.getElementById("nama-pegawai").innerText = data.nama;
+                document.getElementById("panel-login").style.display = "none";
+                document.getElementById("panel-absen").style.display = "block";
+                
+                // Bersihkan form
+                document.getElementById("email").value = "";
+                document.getElementById("password").value = "";
+                msgEl.innerText = "";
+                btnLogin.disabled = false;
+            } else {
+                msgEl.innerText = data.message;
+                msgEl.style.color = "red";
+                btnLogin.disabled = false;
+            }
+        }).catch(err => {
+            msgEl.innerText = "Kesalahan jaringan.";
+            msgEl.style.color = "red";
+            btnLogin.disabled = false;
+        });
+    }
+
+    // --- LOGOUT ---
+    function logout() {
+        localStorage.removeItem("guru_nama");
+        document.getElementById("panel-absen").style.display = "none";
+        document.getElementById("panel-login").style.display = "block";
+        document.getElementById("absen-msg").innerText = "";
+        document.getElementById("foto").value = "";
+        document.getElementById("preview").style.display = "none";
+    }
+
+    // --- PROSES FOTO (TETAP SAMA) ---
+    let base64String = "";
+    document.getElementById('foto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const scaleSize = 400 / img.width;
+                canvas.width = 400; canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                base64String = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('preview').src = base64String;
+                document.getElementById('preview').style.display = 'block';
+            }
+            img.src = event.target.result;
+        }
+        reader.readAsDataURL(file);
+    });
+
+    function hitungJarakMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return Math.round(R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))));
+    }
+
+    // --- PROSES ABSEN ---
+    function kirimAbsen() {
+        const nama = localStorage.getItem("guru_nama"); // Ambil nama dari memori HP
+        const status = document.getElementById('status').value;
+        const msgEl = document.getElementById('absen-msg');
+        const btnAbsen = document.getElementById('btnAbsen');
+
+        if (!nama) { alert("Sesi habis, silakan login ulang."); logout(); return; }
+        if (!base64String) { alert('Ambil foto selfie terlebih dahulu!'); return; }
+
+        btnAbsen.disabled = true;
+        msgEl.innerText = "Mengecek lokasi GPS..."; msgEl.style.color = "orange";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude; const lng = position.coords.longitude;
+                    const jarak = hitungJarakMeters(SEKOLAH_LAT, SEKOLAH_LNG, lat, lng);
+                    
+                    if (jarak > RADIUS_MAKSIMAL) {
+                        msgEl.innerHTML = `❌ <b>Ditolak!</b> Jarak Anda ${jarak}m. (Batas: ${RADIUS_MAKSIMAL}m)`;
+                        msgEl.style.color = "red"; btnAbsen.disabled = false; return; 
+                    }
+
+                    msgEl.innerText = `Mengirim data...`;
+
+                    fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: "absen", nama: nama, status: status, lat: lat, lng: lng, fotoBase64: base64String
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.result === "success") {
+                            msgEl.innerHTML = `✅ <b>Berhasil!</b><br><span class="info-time">Info: <b>${data.infoWaktu}</b></span>`;
+                            document.getElementById('foto').value = ''; btnAbsen.disabled = false;
+                        } else {
+                            msgEl.innerText = "❌ Gagal: " + data.message; msgEl.style.color = "red"; btnAbsen.disabled = false;
+                        }
+                    }).catch(err => { msgEl.innerText = "Kesalahan jaringan."; msgEl.style.color = "red"; btnAbsen.disabled = false; });
+                },
+                function(error) { msgEl.innerText = "❌ Gagal akses GPS."; msgEl.style.color = "red"; btnAbsen.disabled = false; },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            msgEl.innerText = "Browser tidak dukung GPS."; msgEl.style.color = "red"; btnAbsen.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
