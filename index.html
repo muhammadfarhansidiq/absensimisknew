@@ -264,7 +264,7 @@
                         } else {
                             msgEl.innerText = "❌ Gagal: " + data.message; msgEl.style.color = "red"; btnAbsen.disabled = false;
                         }
-                    }).catch(err => { msgEl.innerText = "Kesalahan jaringan."; msgEl.style.color = "red"; btnAbsen.disabled = false; });
+                    }).catch(err => { msgEl.innerText = "❌ <b>Koneksi terputus!</b><br>Info: Data kemungkinan <b>sudah masuk</b>, tapi balasan server gagal dimuat. (" + err.message + ")"; msgEl.style.color = "red"; btnAbsen.disabled = false; });
                 },
                 function(error) { msgEl.innerText = "❌ Gagal akses GPS. Pastikan izin lokasi aktif."; msgEl.style.color = "red"; btnAbsen.disabled = false; },
                 { enableHighAccuracy: true }
