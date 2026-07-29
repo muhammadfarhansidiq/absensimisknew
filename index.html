@@ -188,14 +188,9 @@
 
 <script>
     // MASUKKAN URL WEB APP ANDA DI SINI
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEbbLLq8Z1-ow_kUhwvW_5himrBrZvFua_pzIW4-TJG4Tx4JpXSAj8kqSjlqW9GDwm/exec'; 
-    
-    //const SEKOLAH_LAT = -6.261660060621071; 
-    //const SEKOLAH_LNG = 106.84235258398554; 
-    //const RADIUS_MAKSIMAL = 50; 
-
-    const SEKOLAH_LAT = -6.331541;
-    const SEKOLAH_LNG = 106.821780; 
+    const GAS_URL = 'URL_WEB_APP_ANDA_DISINI'; 
+    const SEKOLAH_LAT = -6.200000; 
+    const SEKOLAH_LNG = 106.816666; 
     const RADIUS_MAKSIMAL = 50; 
 
     let base64String = "";
@@ -208,7 +203,7 @@
             document.getElementById("panel-login").style.display = "none";
             document.getElementById("panel-register").style.display = "none";
             document.getElementById("panel-absen").style.display = "block";
-            mulaiKamera(); 
+            cekStatusHarian(); // Cek penguncian form
         }
     };
 
@@ -219,7 +214,49 @@
         el.innerHTML = text;
     }
 
-    // --- FITUR PINDAH PANEL LOGIN & REGISTER ---
+    // --- PENGUNCIAN FORM HARIAN (ANTI DOUBLE) ---
+    function cekStatusHarian() {
+        const today = new Date().toLocaleDateString('id-ID'); // Mendapatkan tanggal hari ini di HP
+        const lastDate = localStorage.getItem("absen_date");
+        const lastStatus = localStorage.getItem("absen_status");
+        
+        const selStatus = document.getElementById("status");
+        const btnJepret = document.getElementById("btnJepret");
+        const btnAbsen = document.getElementById("btnAbsen");
+        const wadahKamera = document.getElementById("kamera-container");
+
+        // Reset semua ke kondisi normal dulu (jika hari sudah berganti besoknya)
+        selStatus.disabled = false;
+        selStatus.options[0].disabled = false;
+        btnJepret.style.display = "block";
+        btnAbsen.style.display = "block";
+        wadahKamera.style.display = "block";
+        document.getElementById("absen-msg").style.display = "none";
+
+        if (lastDate === today) {
+            if (lastStatus === "Hadir") {
+                // Kunci Opsi Hadir, arahkan ke Pulang
+                selStatus.value = "Pulang";
+                selStatus.options[0].disabled = true; 
+                showMsg("absen-msg", "Info: Anda sudah absen masuk. Silakan lakukan absen Pulang jika sudah waktunya.", "warning");
+                mulaiKamera();
+            } else if (lastStatus === "Pulang") {
+                // Kunci seluruh fitur absen karena sudah selesai
+                selStatus.disabled = true;
+                btnJepret.style.display = "none";
+                btnAbsen.style.display = "none";
+                wadahKamera.style.display = "none";
+                showMsg("absen-msg", "🎉 Anda sudah menyelesaikan absen untuk hari ini. Sampai jumpa besok!", "success");
+                matikanKamera();
+            }
+        } else {
+            // Jika hari berbeda, langsung mulai kamera
+            selStatus.value = "Hadir";
+            mulaiKamera();
+        }
+    }
+
+    // --- FITUR PINDAH PANEL ---
     function tampilRegister() {
         document.getElementById("panel-login").style.display = "none";
         document.getElementById("panel-register").style.display = "block";
@@ -237,9 +274,7 @@
         const password = document.getElementById("reg-password").value;
         const btnReg = document.getElementById("btnRegister");
 
-        if (!nama || !email || !password) {
-            showMsg("register-msg", "Mohon lengkapi semua data!", "error"); return;
-        }
+        if (!nama || !email || !password) { showMsg("register-msg", "Mohon lengkapi semua data!", "error"); return; }
 
         btnReg.disabled = true;
         showMsg("register-msg", "Mendaftarkan akun...", "warning");
@@ -256,23 +291,21 @@
                 document.getElementById("reg-email").value = "";
                 document.getElementById("reg-password").value = "";
                 btnReg.disabled = false;
-                setTimeout(tampilLogin, 2000); // Pindah otomatis setelah 2 detik
+                setTimeout(tampilLogin, 2000); 
             } else {
                 showMsg("register-msg", data.message, "error"); btnReg.disabled = false;
             }
-        }).catch(err => {
-            showMsg("register-msg", "Kesalahan jaringan.", "error"); btnReg.disabled = false;
-        });
+        }).catch(err => { showMsg("register-msg", "Kesalahan jaringan.", "error"); btnReg.disabled = false; });
     }
 
-    // --- FITUR LOGIN & KAMERA & ABSEN ---
+    // --- FITUR KAMERA ---
     async function mulaiKamera() {
         const video = document.getElementById('video');
         try {
             streamKamera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             video.srcObject = streamKamera;
         } catch (err) {
-            alert("Akses kamera ditolak! Mohon izinkan penggunaan kamera di browser Anda.");
+            console.log("Kamera tidak diperlukan atau ditolak.");
         }
     }
 
@@ -281,17 +314,13 @@
         const canvas = document.getElementById('canvas');
         const preview = document.getElementById('preview');
         
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         
         base64String = canvas.toDataURL('image/jpeg', 0.7);
         
-        preview.src = base64String;
-        preview.style.display = 'block';
+        preview.src = base64String; preview.style.display = 'block';
         document.getElementById('kamera-container').style.display = 'none';
-        
         document.getElementById('btnJepret').style.display = 'none';
         document.getElementById('btnUlangi').style.display = 'block';
     }
@@ -308,6 +337,7 @@
         if (streamKamera) { streamKamera.getTracks().forEach(track => track.stop()); }
     }
 
+    // --- FITUR LOGIN ---
     function prosesLogin() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
@@ -334,22 +364,28 @@
                 document.getElementById("login-msg").style.display = "none";
                 btnLogin.disabled = false;
                 
-                mulaiKamera(); 
+                cekStatusHarian(); 
             } else {
                 showMsg("login-msg", data.message, "error"); btnLogin.disabled = false;
             }
         }).catch(err => { showMsg("login-msg", "Kesalahan jaringan.", "error"); btnLogin.disabled = false; });
     }
 
+    // --- FITUR LOGOUT ---
     function logout() {
         matikanKamera(); 
         localStorage.removeItem("guru_nama");
+        // Hapus juga riwayat absen agar user lain bisa absen di HP yang sama
+        localStorage.removeItem("absen_date"); 
+        localStorage.removeItem("absen_status");
+
         document.getElementById("panel-absen").style.display = "none";
         document.getElementById("panel-login").style.display = "block";
         document.getElementById("absen-msg").style.display = "none";
         ulangiFoto(); 
     }
 
+    // --- FITUR ABSEN ---
     function hitungJarakMeters(lat1, lon1, lat2, lon2) {
         const R = 6371000; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
@@ -362,7 +398,7 @@
         const btnAbsen = document.getElementById('btnAbsen');
 
         if (!nama) { alert("Sesi habis, silakan login ulang."); logout(); return; }
-        if (!base64String) { alert('Silakan klik "Jepret Foto" terlebih dahulu!'); return; }
+        if (!base64String) { showMsg("absen-msg", "⚠️ Silakan klik 'Jepret Foto' terlebih dahulu!", "error"); return; }
 
         btnAbsen.disabled = true;
         showMsg("absen-msg", "Mengecek lokasi GPS...", "warning");
@@ -390,13 +426,23 @@
                     .then(data => {
                         if (data.result === "success") {
                             showMsg("absen-msg", `✅ <b>Absen Berhasil!</b><br><span class="info-time">Info: <b>${data.infoWaktu}</b></span>`, "success");
+                            
+                            // SIMPAN STATUS KE MEMORI HP (Untuk mengunci UI)
+                            const today = new Date().toLocaleDateString('id-ID');
+                            localStorage.setItem("absen_date", today);
+                            localStorage.setItem("absen_status", status);
+                            
                             ulangiFoto(); 
                             btnAbsen.disabled = false;
+                            
+                            // Segarkan UI
+                            setTimeout(cekStatusHarian, 2500); 
+
                         } else {
                             showMsg("absen-msg", "❌ Gagal: " + data.message, "error"); btnAbsen.disabled = false;
                         }
                     }).catch(err => { 
-                        showMsg("absen-msg", "❌ <b>Koneksi terputus!</b><br>Data kemungkinan <b>sudah masuk</b>, tapi balasan server gagal dimuat. (" + err.message + ")", "error"); 
+                        showMsg("absen-msg", "❌ <b>Koneksi terputus!</b><br>Data kemungkinan <b>sudah masuk</b>, tapi balasan server gagal dimuat. Coba refresh halaman.", "error"); 
                         btnAbsen.disabled = false; 
                     });
                 },
