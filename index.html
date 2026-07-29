@@ -358,6 +358,17 @@
         .then(data => {
             if (data.result === "success") {
                 localStorage.setItem("guru_nama", data.nama);
+                
+                // Menerima memori absen dari database server
+                const today = new Date().toLocaleDateString('id-ID');
+                if (data.statusHariIni !== "") {
+                    localStorage.setItem("absen_date", today);
+                    localStorage.setItem("absen_status", data.statusHariIni);
+                } else {
+                    localStorage.removeItem("absen_date");
+                    localStorage.removeItem("absen_status");
+                }
+
                 document.getElementById("nama-pegawai").innerText = data.nama;
                 document.getElementById("panel-login").style.display = "none";
                 document.getElementById("panel-absen").style.display = "block";
@@ -366,6 +377,7 @@
                 document.getElementById("login-msg").style.display = "none";
                 btnLogin.disabled = false;
                 
+                // Panggil fungsi cek UI setelah login berhasil
                 cekStatusHarian(); 
             } else {
                 showMsg("login-msg", data.message, "error"); btnLogin.disabled = false;
