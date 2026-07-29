@@ -60,12 +60,18 @@
     <!-- ================= PANEL LOGIN ================= -->
     <div id="panel-login">
         <h2>👋 Selamat Datang</h2>
+        <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 20px; margin-top:-10px;">Silakan login ke portal absensi</p>
+        
         <div id="login-msg" class="msg" style="display:none;"></div>
+        
         <label>Alamat Email</label>
-        <input type="email" id="email" required>
+        <input type="email" id="email" placeholder="contoh: guru@sekolah.id" required>
+        
         <label>Kata Sandi</label>
-        <input type="password" id="password" required>
+        <input type="password" id="password" placeholder="Masukkan password Anda" required>
+        
         <button id="btnLogin" class="btn-primary" onclick="prosesLogin()">Masuk Sistem</button>
+        
         <div style="text-align: center; margin-top: 15px;">
             <a href="#" onclick="tampilRegister()" class="link-text">Belum punya akun? Daftar di sini</a>
         </div>
@@ -74,14 +80,21 @@
     <!-- ================= PANEL REGISTER ================= -->
     <div id="panel-register" style="display: none;">
         <h2>📝 Daftar Akun</h2>
+        <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 20px; margin-top:-10px;">Buat akun untuk presensi</p>
+        
         <div id="register-msg" class="msg" style="display:none;"></div>
+        
         <label>Nama Lengkap (Sesuai Gelar)</label>
-        <input type="text" id="reg-nama" required>
+        <input type="text" id="reg-nama" placeholder="Contoh: Budi Santoso, S.Pd" required>
+        
         <label>Alamat Email</label>
-        <input type="email" id="reg-email" required>
+        <input type="email" id="reg-email" placeholder="Masukkan email aktif" required>
+        
         <label>Kata Sandi</label>
-        <input type="password" id="reg-password" required>
+        <input type="password" id="reg-password" placeholder="Buat password" required>
+        
         <button id="btnRegister" class="btn-primary" onclick="prosesRegister()">Daftar Sekarang</button>
+        
         <div style="text-align: center; margin-top: 15px;">
             <a href="#" onclick="tampilLogin()" class="link-text">Sudah punya akun? Login di sini</a>
         </div>
